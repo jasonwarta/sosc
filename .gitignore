@@ -1,0 +1,29 @@
+# Allow-list: only source, tools, docs and release files are tracked. The game, its
+# decompilation, reference screenshots and third-party tools stay local.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/NOTES.md
+!/fix/
+!/dist/
+!/tools/
+!/models/
+
+# fix/: source only
+/fix/*
+!/fix/*.c
+!/fix/*.h
+!/fix/tests/
+/fix/tests/*
+!/fix/tests/*.c
+
+# tools/: our scripts only (Ghidra, Zig, cnc-ddraw, dgVoodoo, Real-ESRGAN stay local)
+/tools/*
+!/tools/*.py
+!/tools/scripts/
+
+# models/: no Blender autosaves
+/models/*.blend1
+
+__pycache__/

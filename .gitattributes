@@ -1,0 +1,6 @@
+* text=auto
+*.ini text eol=crlf
+*.cmd text eol=crlf
+*.txt text eol=crlf
+*.blend binary
+*.png binary
