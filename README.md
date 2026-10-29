@@ -9,12 +9,12 @@ never modified.
 ## Playing
 
 1. **Get the game.** None of its files are in this repository. *Streets of SimCity* is
-   abandonware; MyAbandonware has it at
-   [myabandonware.com/game/streets-of-simcity-df0](https://myabandonware.com/game/streets-of-simcity-df0).
-   Take the **ISO version** (346 MB, the full CD): the fix is made and tested with it. The
-   smaller "RIP" version reportedly gives Glide errors on modern PCs.
-2. **Copy the game's files into a folder.** Double-click the ISO to mount it in Windows and
-   copy everything on it into a folder such as `C:\Games\Streets`.
+   abandonware: download `Streets_of_SimCity_Win_ISO_EN.zip` (345 MB, the full CD as an ISO)
+   from [oldgamesdownload.com](https://oldgamesdownload.com/game/streets-of-simcity-6jg/#game-downloads),
+   the copy the fix was made and tested with. Skip the site's setup guide (compatibility
+   mode, 256 colours): the fix replaces all of that.
+2. **Copy the game's files into a folder.** Unzip the download, double-click the ISO inside to
+   mount it in Windows, and copy everything on it into a folder such as `C:\Games\Streets`.
 3. **Add the fix.** Download the zip from [Releases](../../releases) and unzip it into the same
    folder, overwriting when asked.
 4. **Play.** Double-click `Play (OpenGL).cmd`. The zip's `README.txt` has the keys and settings.

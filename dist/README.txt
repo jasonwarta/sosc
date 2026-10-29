@@ -7,11 +7,11 @@ smoke and fire effects, and a few crash fixes. The game's own files are not incl
 need your own copy.
 
 INSTALL
-1. Get the game: the ISO version (346 MB, the full CD) from
-   https://myabandonware.com/game/streets-of-simcity-df0
-   (the fix is made for it; the smaller "RIP" version is untested). Double-click the ISO to mount
-   it, then copy everything on it into a folder, for example C:\Games\Streets. Keep the
-   folder structure (GEO, SOUND, BMP, ...).
+1. Get the game: Streets_of_SimCity_Win_ISO_EN.zip (345 MB, the full CD as an ISO) from
+   https://oldgamesdownload.com/game/streets-of-simcity-6jg/#game-downloads
+   (the copy the fix was made and tested with; skip the site's setup guide, the fix replaces
+   it). Unzip it, double-click the ISO to mount it, then copy everything on it into a folder,
+   for example C:\Games\Streets. Keep the folder structure (GEO, SOUND, BMP, ...).
 2. Unzip this release into that same folder, letting it overwrite anything it asks about.
 3. Double-click "Play (OpenGL).cmd".
 
