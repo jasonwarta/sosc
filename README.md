@@ -6,8 +6,18 @@ a longer draw distance, HD textures, the smoke/fire particles the OpenGL rendere
 and a set of crash fixes. Everything is patched in memory at runtime; `Streets.exe` itself is
 never modified.
 
-**Players:** download the zip from [Releases](../../releases) and follow its `README.txt`. You
-need your own copy of the game; none of its files are in this repository.
+## Playing
+
+1. **Get the game.** None of its files are in this repository. *Streets of SimCity* is
+   abandonware; MyAbandonware has it at
+   [myabandonware.com/game/streets-of-simcity-df0](https://myabandonware.com/game/streets-of-simcity-df0).
+   Take the **ISO version** (346 MB, the full CD): the fix is made and tested with it. The
+   smaller "RIP" version reportedly gives Glide errors on modern PCs.
+2. **Copy the game's files into a folder.** Double-click the ISO to mount it in Windows and
+   copy everything on it into a folder such as `C:\Games\Streets`.
+3. **Add the fix.** Download the zip from [Releases](../../releases) and unzip it into the same
+   folder, overwriting when asked.
+4. **Play.** Double-click `Play (OpenGL).cmd`. The zip's `README.txt` has the keys and settings.
 
 ## How it works
 
@@ -52,3 +62,9 @@ The zip's art (HD textures, the widescreen HUD pieces, the moose sounds and the 
 puts the moose model in `GEO\SIM3D1.MAX`) comes from a development game folder (`game/` by
 default, `--game` to change it), which isn't in git. `--publish` needs a clean working tree
 and the GitHub CLI (`gh auth login`).
+
+## License
+
+[MIT](LICENSE) for everything in this repository. *Streets of SimCity* itself belongs to its
+rights holders and isn't covered. Releases also contain
+[cnc-ddraw](https://github.com/FunkyFr3sh/cnc-ddraw) (MIT).

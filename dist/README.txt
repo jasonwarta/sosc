@@ -7,8 +7,11 @@ smoke and fire effects, and a few crash fixes. The game's own files are not incl
 need your own copy.
 
 INSTALL
-1. Copy all the files from the Streets of SimCity CD (or ISO) into a folder, for example
-   C:\Games\Streets. Keep the folder structure (GEO, SOUND, BMP, ...).
+1. Get the game: the ISO version (346 MB, the full CD) from
+   https://myabandonware.com/game/streets-of-simcity-df0
+   (the fix is made for it; the smaller "RIP" version is untested). Double-click the ISO to mount
+   it, then copy everything on it into a folder, for example C:\Games\Streets. Keep the
+   folder structure (GEO, SOUND, BMP, ...).
 2. Unzip this release into that same folder, letting it overwrite anything it asks about.
 3. Double-click "Play (OpenGL).cmd".
 
@@ -40,4 +43,5 @@ CREDITS
 - cnc-ddraw (ddraw.dll, Shaders\) by FunkyFr3sh, MIT license: licenses\cnc-ddraw.txt
 - Moose sounds made from public domain recordings by the US Fish and Wildlife Service
   (via SoundBible).
-- Source and notes: https://github.com/jasonwarta/sosc
+- The fix: MIT license, licenses\streets-fix.txt. Source and notes:
+  https://github.com/jasonwarta/sosc
