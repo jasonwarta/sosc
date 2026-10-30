@@ -10,6 +10,7 @@
 !/dist/
 !/tools/
 !/models/
+!/installer/
 
 # fix/: source only
 /fix/*

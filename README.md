@@ -8,16 +8,21 @@ never modified.
 
 ## Playing
 
-1. **Get the game.** None of its files are in this repository. *Streets of SimCity* is
-   abandonware: download `Streets_of_SimCity_Win_ISO_EN.zip` (345 MB, the full CD as an ISO)
-   from [oldgamesdownload.com](https://oldgamesdownload.com/game/streets-of-simcity-6jg/#game-downloads),
-   the copy the fix was made and tested with. Skip the site's setup guide (compatibility
-   mode, 256 colours): the fix replaces all of that.
-2. **Copy the game's files into a folder.** Unzip the download, double-click the ISO inside to
-   mount it in Windows, and copy everything on it into a folder such as `C:\Games\Streets`.
-3. **Add the fix.** Download the zip from [Releases](../../releases) and unzip it into the same
-   folder, overwriting when asked.
-4. **Play.** Double-click `Play (OpenGL).cmd`. The zip's `README.txt` has the keys and settings.
+Download **`StreetsOfSimCity-Setup-<version>.exe`** from [Releases](../../releases) and run it.
+It installs the fix, downloads the game itself (the original CD image, 508 MB, from the
+[Internet Archive](https://archive.org/details/Streets_of_SimCity_Maxis_1997), checked against
+the copy the fix was made with), and adds Start menu and desktop shortcuts. No admin rights
+needed. If you already have the game's CD image, choose "Use a copy I already have" and pick
+the `.iso` or the zip it came in.
+
+Windows may show "Windows protected your PC" because the installer isn't code-signed: click
+**More info**, then **Run anyway**.
+
+**Without the installer:** unzip `StreetsOfSimCity-Fix-<version>.zip` into a new folder, then
+drag the game's `.iso`, or the `Streets_of_SimCity_Win_ISO_EN.zip` download from
+[oldgamesdownload.com](https://oldgamesdownload.com/game/streets-of-simcity-6jg/#game-downloads),
+onto `Copy game from CD.cmd` in that folder. Then double-click `Play (OpenGL).cmd`. (The game sits
+in the CD's `exe` folder, so a plain copy of the CD won't start; the script lays it out right.)
 
 ## How it works
 
@@ -38,7 +43,8 @@ fix and why, dead ends, and the dated history.
 |---|---|
 | `fix/` | C source of `streets_fix.dll`, `dsound.dll` (`dsound_proxy.c`) and the optional `streets_launch.exe`. |
 | `fix/tests/` | Standalone tests for the trickier patches. |
-| `dist/` | Files shipped as-is in the release: settings, the Play shortcut, the player README, licenses. |
+| `dist/` | Files shipped as-is in the release: settings, the Play and Copy-from-CD scripts, the player README, licenses. |
+| `installer/` | The Inno Setup script for Setup.exe and `install_game.ps1`, which copies the game straight out of its CD image (no mounting). |
 | `tools/build.py` | Builds the DLLs (needs Zig 0.13). |
 | `tools/package.py` | Builds and zips a release; `--publish` uploads it to GitHub Releases. |
 | `tools/` (other) | Texture upscaling and ChatGPT texture-job helpers, the moose model and sound generators, MAX mesh and disassembly helpers. |
@@ -52,6 +58,9 @@ fix and why, dead ends, and the dated history.
 3. Copy the two DLLs into a game folder that already has a release unpacked in it.
 
 ## Making a release
+
+Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) for the installer (without it only
+the zip is built).
 
 ```
 python tools/package.py v1.0.0             # out/StreetsOfSimCity-Fix-v1.0.0.zip

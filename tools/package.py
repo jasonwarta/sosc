@@ -1,4 +1,5 @@
-r"""Build the fix and bundle a release zip, optionally publishing it as a GitHub release.
+r"""Build the fix and bundle a release: the installer (Setup.exe) and a zip, optionally
+publishing both as a GitHub release.
 
 usage: python tools/package.py <version> [--game <dir>] [--publish] [--notes <file>]
   e.g. python tools/package.py v1.0.0 --publish
@@ -7,13 +8,18 @@ The zip unpacks over a copy of the game's files:
   streets_fix.dll, dsound.dll         the fix and the DLL that loads it (fix/, built here)
   ddraw.dll, Shaders\                 cnc-ddraw (tools/cnc-ddraw/cnc-ddraw.zip; downloaded if missing)
   ddraw.ini, streets_fix.ini,         settings and the shortcut (dist/)
-  Play (OpenGL).cmd, README.txt
+  Play (OpenGL).cmd, Copy game from CD.cmd (+ install_game.ps1), Streets Fix README.txt
   licenses\                           (dist/licenses)
   textures\hd\, textures\wide\        HD textures and widescreen HUD art (from the game folder)
   mods\moose\                         the moose: a patch for GEO\SIM3D1.MAX (made from the game
                                       folder's SIM3D1.MAX.orig) and the two sounds (SOUND\cow*.WAV)
 The art comes from the development game folder (--game, default game/), not from git.
---publish tags the current commit as <version> and uploads the zip with gh (the GitHub CLI).
+
+The installer (installer/streets.iss, Inno Setup 6) holds the same files, then downloads the
+game's CD image from the Internet Archive (or takes one the player has) and copies the game in.
+It's built when Inno Setup's ISCC.exe is found (ISCC env var, tools/innosetup/, or the usual
+install folders); otherwise only the zip is made.
+--publish tags the current commit as <version> and uploads both with gh (the GitHub CLI).
 """
 import argparse
 import os
@@ -47,6 +53,35 @@ def moose_patch(game):
     import make_moose
     make_moose.orient()
     return make_moose.make_patch(open(original, "rb").read())
+
+
+def iscc():
+    candidates = [os.environ.get("ISCC"), os.path.join(ROOT, "tools", "innosetup", "ISCC.exe")]
+    for base in (os.environ.get("LOCALAPPDATA"), os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles")):
+        if base:
+            candidates += [os.path.join(base, "Programs", "Inno Setup 6", "ISCC.exe"),
+                           os.path.join(base, "Inno Setup 6", "ISCC.exe")]
+    return next((c for c in candidates if c and os.path.exists(c)), None)
+
+
+def build_installer(files, version, out_dir):
+    compiler = iscc()
+    if not compiler:
+        print("WARNING: Inno Setup (ISCC.exe) not found, so no installer; see installer/streets.iss")
+        return None
+    stage = os.path.join(out_dir, "stage")
+    shutil.rmtree(stage, ignore_errors=True)
+    for path, data in files.items():
+        dest = os.path.join(stage, *path.split("/"))
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, "wb") as f:
+            f.write(data)
+    subprocess.run([compiler, "/Q", f"/DAppVersion={version}", f"/DStage={stage}", f"/DOutDir={out_dir}",
+                    os.path.join(ROOT, "installer", "streets.iss")], check=True)
+    shutil.rmtree(stage, ignore_errors=True)
+    setup = os.path.join(out_dir, f"StreetsOfSimCity-Setup-{version}.exe")
+    print(f"{os.path.relpath(setup, ROOT)}: {os.path.getsize(setup) / 1e6:.1f} MB")
+    return setup
 
 
 def check_ini(game):
@@ -91,6 +126,7 @@ def main():
         for n in names:
             path = os.path.join(dirpath, n)
             files[os.path.relpath(path, dist).replace(os.sep, "/")] = open(path, "rb").read()
+    files["install_game.ps1"] = open(os.path.join(ROOT, "installer", "install_game.ps1"), "rb").read()
     for sub in ("hd", "wide"):
         folder = os.path.join(game, "textures", sub)
         for n in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
@@ -103,20 +139,22 @@ def main():
             sys.exit(f"package: {path} isn't the moose sound (no .orig beside it); run tools/make_moose_sounds.py")
         files[f"mods/moose/{n}"] = open(path, "rb").read()
 
+    for path in files:
+        if path.lower().endswith(TEXT):
+            files[path] = files[path].replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         for path in sorted(files):
-            data = files[path]
-            if path.lower().endswith(TEXT):
-                data = data.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
-            z.writestr(path, data)
+            z.writestr(path, files[path])
     hd = sum(1 for p in files if p.startswith("textures/hd/"))
     print(f"{os.path.relpath(zip_path, ROOT)}: {len(files)} files ({hd} HD textures), "
           f"{os.path.getsize(zip_path) / 1e6:.1f} MB")
+    setup = build_installer(files, args.version, out_dir)
 
     if args.publish:
         if subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True).stdout.strip():
             sys.exit("package: commit your changes before publishing (the release tags the current commit)")
-        cmd = ["gh", "release", "create", args.version, zip_path, "--title", f"Streets of SimCity fix {args.version}"]
+        assets = [setup, zip_path] if setup else [zip_path]
+        cmd = ["gh", "release", "create", args.version, *assets, "--title", f"Streets of SimCity fix {args.version}"]
         cmd += ["--notes-file", args.notes] if args.notes else ["--generate-notes"]
         subprocess.run(["git", "push"], cwd=ROOT, check=True)
         subprocess.run(cmd, cwd=ROOT, check=True)

@@ -7,13 +7,18 @@ smoke and fire effects, and a few crash fixes. The game's own files are not incl
 need your own copy.
 
 INSTALL
+The easy way is StreetsOfSimCity-Setup-<version>.exe from the releases page
+(https://github.com/jasonwarta/sosc/releases): it downloads the game too. This zip is for
+installing by hand:
 1. Get the game: Streets_of_SimCity_Win_ISO_EN.zip (345 MB, the full CD as an ISO) from
    https://oldgamesdownload.com/game/streets-of-simcity-6jg/#game-downloads
-   (the copy the fix was made and tested with; skip the site's setup guide, the fix replaces
-   it). Unzip it, double-click the ISO to mount it, then copy everything on it into a folder,
-   for example C:\Games\Streets. Keep the folder structure (GEO, SOUND, BMP, ...).
-2. Unzip this release into that same folder, letting it overwrite anything it asks about.
-3. Double-click "Play (OpenGL).cmd".
+   It's the copy the fix was made and tested with. Skip the site's setup guide (compatibility
+   mode, 256 colours): the fix replaces all of that.
+2. Unzip this release into a new folder, for example C:\Games\Streets.
+3. Drag the game download (the zip, or the .iso inside it) onto "Copy game from CD.cmd" in
+   that folder. It copies the game in, laid out the way the fix expects. (Copying the CD by
+   hand doesn't work: the game itself sits in the CD's exe folder.)
+4. Double-click "Play (OpenGL).cmd".
 
 The first launch installs the moose (see below) and makes logs\. Windows SmartScreen or your
 antivirus may ask about dsound.dll / streets_fix.dll the first time; they're this fix.
@@ -35,7 +40,8 @@ you're most likely to want:
   moose=1            the cow becomes a bull moose (0 puts the cow back)
 
 IF SOMETHING GOES WRONG
-Send the newest file in the logs\ folder (session_<date>_<time>.log) along with a
+Send the newest file in the logs\ folder (Start menu > "Streets of SimCity logs" if you
+used the installer) (session_<date>_<time>.log) along with a
 screenshot if you can. The log records what the fix did and where the game got stuck or
 crashed.
 
