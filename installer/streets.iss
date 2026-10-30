@@ -42,7 +42,10 @@ SetupLogging=yes
 Name: desktopicon; Description: "Create a desktop shortcut"
 
 [Files]
-Source: "{#Stage}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+; Updates keep the player's settings; settings missing from an older ini fall back to the
+; fix's built-in defaults.
+Source: "{#Stage}\*"; DestDir: "{app}"; Excludes: "streets_fix.ini"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "{#Stage}\streets_fix.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "install_game.ps1"; Flags: dontcopy
 
 [Icons]
