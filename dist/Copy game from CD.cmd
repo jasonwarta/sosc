@@ -25,6 +25,8 @@ for %%f in (BMP Cities FONTS Games GEO HELP scenarios shared SMK SOUND Weapons X
 )
 rem files from a CD are read-only; the fix needs to update a few (the moose)
 attrib -r "%DEST%\*" /s /d >nul
+rem Streets.exe won't start without a glide2x.dll beside it (the CD keeps it in shared)
+if not exist "%DEST%\glide2x.dll" copy "%DEST%\shared\glide2x.dll" "%DEST%\" >nul
 goto done
 
 :image

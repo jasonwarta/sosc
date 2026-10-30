@@ -127,6 +127,14 @@ try {
         Copy-Tree $d (Join-Path $Dest $d.Name)
         Log "copied $($d.Name)"
     }
+    # Streets.exe links to glide2x.dll, so Windows won't start it without one beside it. The CD
+    # keeps the original 3dfx one in shared\. Without 3dfx hardware it only fails a hardware
+    # probe at startup (a few caught exceptions); the OpenGL renderer never uses it.
+    $glide = Join-Path $Dest 'glide2x.dll'
+    if (-not (Test-Path $glide) -and (Test-Path (Join-Path $Dest 'shared\glide2x.dll'))) {
+        Copy-Item (Join-Path $Dest 'shared\glide2x.dll') $glide
+        Log "copied shared\glide2x.dll beside Streets.exe"
+    }
     Log "done: $($script:files) files, $([math]::Round($script:bytes / 1MB)) MB"
     exit 0
 } catch {
