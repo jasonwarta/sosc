@@ -108,6 +108,12 @@ begin
   FilePage.Add('CD image or zip:', 'Streets of SimCity CD (*.iso;*.zip)|*.iso;*.zip|All files|*.*', '.iso');
 
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), 'Downloading the game...', nil);
+
+  // Setup.exe /GAMEFILE="path\to\game.iso" (or the zip): use that copy (also for /VERYSILENT).
+  if ExpandConstant('{param:GAMEFILE}') <> '' then begin
+    SourcePage.SelectedValueIndex := 1;
+    FilePage.Values[0] := ExpandConstant('{param:GAMEFILE}');
+  end;
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
