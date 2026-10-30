@@ -40,9 +40,8 @@ you're most likely to want:
   moose=1            the cow becomes a bull moose (0 puts the cow back)
 
 IF SOMETHING GOES WRONG
-Send the newest file in the logs\ folder (Start menu > "Streets of SimCity logs" if you
-used the installer) (session_<date>_<time>.log) along with a
-screenshot if you can. The log records what the fix did and where the game got stuck or
+Send the newest session_<date>_<time>.log from the logs\ folder (with the installer: Start
+menu > "Streets of SimCity logs"), and a screenshot if you can. The log records what the fix did and where the game got stuck or
 crashed.
 
 CREDITS
