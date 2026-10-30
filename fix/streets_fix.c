@@ -917,6 +917,47 @@ static int install_wave_timing(int ms) {
     return redirect_call(WAVE_STEP_CALL, WAVE_STEP_FUNC, wave_step);
 }
 
+// Car collision size. FUN_005a15b0 (thiscall: car, position, heading) tests six points of a
+// car against the city (FUN_005a1c10: the buildings' meshes): the middle and both corners of
+// the front and of the back. They're placed from the vehicle's entry (0x2c bytes, by the
+// type at car+0x18) in the size table at *0xa0a080: +0x08 length, +0x1c centre to front,
+// +0x20 half width (the back is length - front). Cars clipped buildings they visibly cleared,
+// so the test points are pulled in to carhitbox percent, only for this test: the table
+// stays as is for everything else that reads it (127 places).
+#define WORLD_HIT_FUNC 0x005a15b0
+#define VEHICLE_SIZES  (*(BYTE **)0x00a0a080)
+static int cfg_hitbox_pct = 100;
+static unsigned hitbox_logged;  // vehicle types already logged (bit per type < 32)
+
+static BYTE __fastcall world_hit(BYTE *car, void *edx, int *pos, int heading) {
+    typedef BYTE(__fastcall * world_hit_t)(BYTE *, void *, int *, int);
+    BYTE *sizes = VEHICLE_SIZES;
+    int type = car ? *(int *)(car + 0x18) : -1;
+    if (!sizes || type < 0 || type > 255 || cfg_hitbox_pct == 100)
+        return ((world_hit_t)WORLD_HIT_FUNC)(car, edx, pos, heading);
+    int *e = (int *)(sizes + type * 0x2c), saved[3] = {e[2], e[7], e[8]};
+    if (type < 32 && !(hitbox_logged & 1u << type)) {
+        hitbox_logged |= 1u << type;
+        logmsg("car hitbox: vehicle type %d length %.2f, front %.2f, half width %.2f (units of 64k), tested at %d%%\n",
+               type, e[2] / 65536.0, e[7] / 65536.0, e[8] / 65536.0, cfg_hitbox_pct);
+    }
+    e[2] = (int)((long long)e[2] * cfg_hitbox_pct / 100);
+    e[7] = (int)((long long)e[7] * cfg_hitbox_pct / 100);
+    e[8] = (int)((long long)e[8] * cfg_hitbox_pct / 100);
+    BYTE hit = ((world_hit_t)WORLD_HIT_FUNC)(car, edx, pos, heading);
+    e[2] = saved[0], e[7] = saved[1], e[8] = saved[2];
+    return hit;
+}
+
+static int install_car_hitbox(int pct) {
+    static const DWORD sites[] = {0x005a09e7, 0x005a0aab, 0x005a0aed, 0x005a0c1a, 0x005a0f2a};
+    if (pct <= 0 || pct == 100) return -1;
+    cfg_hitbox_pct = pct < 50 ? 50 : pct > 150 ? 150 : pct;
+    int ok = 0;
+    for (int i = 0; i < 5; i++) ok += redirect_call(sites[i], WORLD_HIT_FUNC, world_hit);
+    return ok == 5;
+}
+
 // The game keeps its preferences in streets.cfg, a MIFF file of records (4-byte tag,
 // 4-byte size including the 8-byte header, data). It only rewrites the file on a clean
 // exit, so a changed setting is easily lost; set ours before the game reads the file.
@@ -948,6 +989,32 @@ static int ini_choice(const char *key, const char *dflt, const char *const *name
     return v < 0 ? 0 : v > max ? max : v;
 }
 
+// A streets.cfg for when there is none yet. The game only writes the file on a clean exit, so
+// a fresh install starts without one, and then the settings above had nothing to change: the
+// first run kept the game's default draw distance (a 25-tile window, too small for worldstart
+// to apply). These are the preferences from a played install: full volumes, all graphics
+// options on, high resolution, draw distance slider 24.
+static const BYTE default_cfg[280] = {
+    0x4d, 0x49, 0x46, 0x46, 0x02, 0x00, 0x00, 0x00, 0x43, 0x50, 0x54, 0x52, 0x50, 0x52, 0x45, 0x46,
+    0x00, 0x00, 0x01, 0x00, 0x18, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x00,
+    0x30, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x2a, 0x2a, 0x2a, 0x44, 0x6f, 0x6e, 0x27, 0x74, 0x20, 0x74,
+    0x72, 0x79, 0x20, 0x74, 0x6f, 0x20, 0x65, 0x64, 0x69, 0x74, 0x20, 0x74, 0x68, 0x69, 0x73, 0x20,
+    0x66, 0x69, 0x6c, 0x65, 0x2a, 0x2a, 0x2a, 0x21, 0x21, 0x21, 0x0a, 0x0a, 0xff, 0xff, 0xff, 0x04,
+    0x18, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
+    0x10, 0x27, 0x00, 0x00, 0x4f, 0x49, 0x45, 0x52, 0x24, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x02, 0x28, 0x00, 0x00, 0x00,
+    0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+    0xff, 0xff, 0xff, 0x03, 0x18, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+    0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x05, 0x2c, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x46, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0xf8, 0xff, 0x00, 0x00, 0x4e, 0x00,
+    0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0xf0, 0xff, 0x00, 0x00, 0x52, 0x00, 0x00, 0x00, 0x3c, 0x00,
+    0x00, 0x00, 0xf8, 0xff, 0xee, 0xee, 0xee, 0x04, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x5a, 0x50, 0x41, 0x4d, 0x0c, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x47, 0x4f, 0x46, 0x56,
+    0x0c, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00,
+};
+
 static void apply_game_settings(void) {
     static const char *const distance_names[25] = {[24] = "max"};
     static const char *const resolution_names[3] = {"low", "lowhigh", "high"};
@@ -958,8 +1025,20 @@ static void apply_game_settings(void) {
     char path[MAX_PATH + 16];
     snprintf(path, sizeof path, "%s\\streets.cfg", game_dir);
     HANDLE f = CreateFileA(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    if (f == INVALID_HANDLE_VALUE && GetLastError() == ERROR_FILE_NOT_FOUND) {
+        f = CreateFileA(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, 0, NULL);
+        DWORD written = 0;
+        if (f != INVALID_HANDLE_VALUE && WriteFile(f, default_cfg, sizeof default_cfg, &written, NULL) &&
+            written == sizeof default_cfg) {
+            SetFilePointer(f, 0, NULL, FILE_BEGIN);
+            logmsg("game settings: no streets.cfg yet, wrote the default one\n");
+        } else if (f != INVALID_HANDLE_VALUE) {
+            CloseHandle(f);
+            f = INVALID_HANDLE_VALUE;
+        }
+    }
     if (f == INVALID_HANDLE_VALUE) {
-        logmsg("game settings: no streets.cfg yet (the game makes one on first exit)\n");
+        logmsg("game settings: streets.cfg can't be opened (error %lu), left alone\n", GetLastError());
         return;
     }
     BYTE buf[4096];
@@ -1035,6 +1114,8 @@ BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID reserved) {
     int world = drawdist_install(GetPrivateProfileIntA("fix", "worldtiles", 61, ini_path),
                                  GetPrivateProfileIntA("fix", "worldstart", 0, ini_path));
     int waves = install_wave_timing(GetPrivateProfileIntA("fix", "wavems", 33, ini_path));
+    int hitbox = install_car_hitbox(GetPrivateProfileIntA("fix", "carhitbox", 70, ini_path));
+    logmsg("car hitbox: %s\n", hitbox < 0 ? "original size" : hitbox ? "ok" : "FAILED");
     int precise = GetPrivateProfileIntA("fix", "precisetime", 1, ini_path) ? install_precise_time() : -1;
     int profile = GetPrivateProfileIntA("fix", "frameprofile", 1, ini_path) ? install_frame_profile() : -1;
     HOOK("GDI32.dll", "SwapBuffers", real_SwapBuffers, SwapBuffers_t, hook_SwapBuffers);  // profile and the flash
